@@ -102,3 +102,8 @@ dist
 
 # TernJS port file
 .tern-port
+masq_ea/serviceAccount.json
+masq_ei/serviceAccount.json
+masq_ei/ei_creds.txt
+masq_ea/task.json
+masq_ea/external-adapter.zip

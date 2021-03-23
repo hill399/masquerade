@@ -1,0 +1,24 @@
+{
+    "name": "masq_ei",
+    "version": "1.0.0",
+    "description": "External Initiator for Masquerade Platform",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "github.com/hill399/masquerade"
+    },
+    "author": "hill399",
+    "license": "ISC",
+    "dependencies": {
+        "@google-cloud/storage": "^5.8.1",
+        "body-parser": "^1.19.0",
+        "cors": "^2.8.5",
+        "express": "^4.17.1",
+        "express-fileupload": "^1.2.1",
+        "request": "^2.88.2"
+    }
+}
