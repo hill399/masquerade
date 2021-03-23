@@ -1,0 +1,31 @@
+{
+    "name": "masquerade",
+    "version": "1.0.0",
+    "description": "Hide data in NFTs",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hill399/masquerade.git"
+    },
+    "author": "hill399",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/hill399/masquerade/issues"
+    },
+    "homepage": "https://github.com/hill399/masquerade#readme",
+    "devDependencies": {
+        "@nomiclabs/hardhat-ethers": "^2.0.2",
+        "@nomiclabs/hardhat-waffle": "^2.0.1",
+        "chai": "^4.3.4",
+        "ethereum-waffle": "^3.3.0",
+        "ethers": "^5.0.32",
+        "hardhat": "^2.1.1"
+    },
+    "dependencies": {
+        "@chainlink/contracts": "^0.1.6",
+        "@openzeppelin/contracts": "^3.3.0"
+    }
+}
