@@ -6,10 +6,10 @@ const ImageDataURI = require('image-data-uri');
 
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage({
-    keyFilename: '/workspace/serviceAccount.json'
+    keyFilename: './serviceAccount.json'
 });
-const bucket = storage.bucket('gs://masquerade');
 
+const bucket = storage.bucket(process.env.CLOUD_BUCKET);
 
 const Canvas = require('canvas');
 const jsdom = require("jsdom");
@@ -32,7 +32,7 @@ const buildAndDeployMetadata = async (ipfs, url, title, desc) => {
         'image': url
     };
 
-    const result = await ipfs.add(metadata);
+    const result = await ipfs.add(JSON.stringify(metadata));
     return `https://ipfs.io/ipfs/${result.cid}`;
 }
 
