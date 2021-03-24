@@ -22,7 +22,7 @@ contract Masquerade is ERC721, Ownable, ChainlinkClient {
     );
 
     modifier onlyMasqueradeNode {
-        require(msg.sender == masqueradeNode);
+        require(msg.sender == masqueradeNode, "Not authorised to mint");
         _;
     }
 
@@ -32,7 +32,7 @@ contract Masquerade is ERC721, Ownable, ChainlinkClient {
     }
 
     function mintNFT(address recipient, string memory tokenURI)
-        public onlyOwner
+        public onlyMasqueradeNode
         returns (uint256)
     {
         _tokenIds.increment();

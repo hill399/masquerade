@@ -1,5 +1,6 @@
 // We import Chai to use its asserting functions here.
 const { expect } = require("chai");
+const hre = require("hardhat");
 
 // `describe` is a Mocha function that allows you to organize your tests. It's
 // not actually needed, but having your tests organized makes debugging them
@@ -17,65 +18,63 @@ describe("Masquerade contract", () => {
 
     // A common pattern is to declare some variables, and assign them in the
     // `before` and `beforeEach` callbacks.
-
     let Masquerade;
     let masqueradeContract;
     let owner;
     let node;
+    let stranger;
+    let linkToken;
+    let tokenOwner;
 
+    let tokenUri = {"name":"this is my new nft","description":"this is my nft description","image":"https://ipfs.io/ipfs/QmYxLg9aerxQjVUJi68BNhWNYBiQeJnEDsVJkrB33gGhnZ"};
+    
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
     beforeEach(async () => {
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: ["0xE84D601E5D945031129a83E5602be0CC7f182Cf3"]}
+        )
+
         // Get the ContractFactory and Signers here.
         Masquerade = await ethers.getContractFactory("Masquerade");
-        [owner, node] = await ethers.getSigners();
+        [owner, node, stranger] = await ethers.getSigners();
+        tokenOwner = await ethers.getSigner("0xE84D601E5D945031129a83E5602be0CC7f182Cf3");
 
         // To deploy our contract, we just have to call Token.deploy() and await
         // for it to be deployed(), which happens onces its transaction has been
         // mined.
         masqueradeContract = await Masquerade.deploy(node.address);
+        linkToken = await ethers.getContractAt("LinkTokenInterface", "0x326C977E6efc84E512bB9C30f76E30c160eD06FB");
+        linkToken.connect(tokenOwner).transfer(owner.address, `${1e18}`);
     });
 
     // You can nest describe calls to create subsections.
     describe("Deployment", () => {
-        // `it` is another Mocha function. This is the one you use to define your
-        // tests. It receives the test name, and a callback function.
-
-        // If the callback function is async, Mocha will `await` it.
         it("Should set the right owner", async () => {
-            // Expect receives a value, and wraps it in an Assertion object. These
-            // objects have a lot of utility methods to assert values.
-
-            // This test expects the owner variable stored in the contract to be equal
-            // to our Signer's owner.
             expect(await masqueradeContract.owner()).to.equal(owner.address);
         });
 
         it("Should set the correct node address", async () => {
             expect(await masqueradeContract.masqueradeNode()).to.equal(node.address);
         });
-
-        it("Should assign the total supply of tokens to the owner", async function () {
-            const ownerBalance = await hardhatToken.balanceOf(owner.address);
-            expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
-        });
     });
 
-    describe("Transactions", function () {
-        it("Should transfer tokens between accounts", async function () {
-            // Transfer 50 tokens from owner to addr1
-            await hardhatToken.transfer(addr1.address, 50);
-            const addr1Balance = await hardhatToken.balanceOf(addr1.address);
-            expect(addr1Balance).to.equal(50);
-
-            // Transfer 50 tokens from addr1 to addr2
-            // We use .connect(signer) to send a transaction from another account
-            await hardhatToken.connect(addr1).transfer(addr2.address, 50);
-            const addr2Balance = await hardhatToken.balanceOf(addr2.address);
-            expect(addr2Balance).to.equal(50);
+    describe("Minting", () => {
+        it("Should block minting from unknown addresses", async () => {
+            await expect(
+                masqueradeContract.connect(stranger).mintNFT(stranger.address, tokenUri)
+            ).to.be.revertedWith("Not authorised to mint");
         });
 
-        it("Should fail if sender doesn’t have enough tokens", async function () {
+        it("Should mint a new NFT if called by the node", async () => {
+            await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
+        });
+
+        it("Should have correct tokenId and tokenUri information", async () => {
+            // Check against ERC721 interface for new parameters
+        });
+/*         it("Should fail if sender doesn’t have enough tokens", async function () {
             const initialOwnerBalance = await hardhatToken.balanceOf(owner.address);
 
             // Try to send 1 token from addr1 (0 tokens) to owner (1000 tokens).
@@ -108,6 +107,6 @@ describe("Masquerade contract", () => {
 
             const addr2Balance = await hardhatToken.balanceOf(addr2.address);
             expect(addr2Balance).to.equal(50);
-        });
+        }); */
     });
 });
