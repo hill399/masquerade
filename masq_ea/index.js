@@ -5,10 +5,10 @@ const decodeImage = require('./decode').decodeImage;
 
 const customParams = {
   func: ['func'],
-  fileId: ['fileId'],
-  message: ['message'],
-  title: ['title'],
-  desc: ['desc'],
+  fileId: false,
+  message: false,
+  title: false,
+  desc: false,
   url: false
 }
 

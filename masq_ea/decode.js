@@ -1,3 +1,5 @@
+const decrpytBuffer = require('./encrypt').decrpytBuffer;
+
 const IPFS = require('ipfs-core');
 
 const sg = require('./steganography/steganography');
@@ -9,11 +11,12 @@ const { JSDOM } = jsdom;
 global.document = new JSDOM(`...`).window.document;
 global.Image = Canvas.Image;
 
-const decodeImage = async (args) => {
+const decodeImage = async (jobRunID, args) => {
     const cid = args[0];
     const ipfs = await IPFS.create();
 
     const stream = ipfs.cat(cid);
+
     const chunks = [];
 
     for await (const buffer of stream) {
@@ -21,9 +24,18 @@ const decodeImage = async (args) => {
     }
 
     const buffer = Buffer.concat(chunks);
-    const res = sg.decode(buffer);
+    const bCipher = sg.decode(buffer);
 
-    return res;
+    const cipher = Buffer.from(bCipher, 'base64');
+    
+    const message = await decrpytBuffer(cipher);
+
+    return {
+        jobRunID: jobRunID,
+        data: { "cid": cid, "complete": true },
+        result: true,
+        statusCode: 200
+    }
 }
 
 module.exports.decodeImage = decodeImage;
@@ -32,10 +44,6 @@ module.exports.decodeImage = decodeImage;
 /*
 
 --- TODO ---
-- Migrate to cloud function.
-- Implement HSM keyring.
-- Decode image.
-- Decode string with HSM key.
-- Return CID.
+- Add secure message delivery (Telegram?)
 
 */

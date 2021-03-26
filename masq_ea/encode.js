@@ -1,3 +1,5 @@
+const encrpytBuffer = require('./encrypt').encrpytBuffer;
+
 const IPFS = require('ipfs-core');
 
 const sg = require('./steganography/steganography');
@@ -22,7 +24,10 @@ const uriToIpfs = async (ipfs, uri) => {
     const resImage = ImageDataURI.decode(uri);
     const result = await ipfs.add(resImage.dataBuffer);
 
-    return `https://ipfs.io/ipfs/${result.cid}`;
+    const imageUrl = `https://ipfs.io/ipfs/${result.cid}`;
+    const imageCid = `${result.cid}`;
+
+    return {imageUrl, imageCid};
 }
 
 const buildAndDeployMetadata = async (ipfs, url, title, desc) => {
@@ -33,7 +38,9 @@ const buildAndDeployMetadata = async (ipfs, url, title, desc) => {
     };
 
     const result = await ipfs.add(JSON.stringify(metadata));
-    return `https://ipfs.io/ipfs/${result.cid}`;
+    const metadataUrl = `https://ipfs.io/ipfs/${result.cid}`;
+
+    return metadataUrl;
 }
 
 
@@ -44,16 +51,16 @@ const encodeImage = async (jobRunID, args) => {
     const desc = args[3];
 
     const imageBuffer = await getBufferFromBucket(id);
-    const dataUri = await sg.encode(message, imageBuffer);
+    const cipher = await encrpytBuffer(message);
+    const dataUri = await sg.encode(cipher, imageBuffer);
 
     const ipfs = await IPFS.create();
-    const url = await uriToIpfs(ipfs, dataUri);
-    const metadataUrl = await buildAndDeployMetadata(ipfs, url, title, desc);
-
+    const {imageUrl, imageCid} = await uriToIpfs(ipfs, dataUri);
+    const metadataUrl = await buildAndDeployMetadata(ipfs, imageUrl, title, desc);
 
     return {
         jobRunID: jobRunID,
-        data: { "fileId": id, "url": metadataUrl, "result": metadataUrl },
+        data: { "fileId": id, "url": metadataUrl, "cid": imageCid,  "result": metadataUrl },
         result: metadataUrl,
         statusCode: 200
     }
