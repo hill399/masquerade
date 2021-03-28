@@ -2,22 +2,7 @@
 const { expect } = require("chai");
 const hre = require("hardhat");
 
-// `describe` is a Mocha function that allows you to organize your tests. It's
-// not actually needed, but having your tests organized makes debugging them
-// easier. All Mocha functions are available in the global scope.
-
-// `describe` receives the name of a section of your test suite, and a callback.
-// The callback must define the tests of that section. This callback can't be
-// an async function.
 describe("Masquerade contract", () => {
-    // Mocha has four functions that let you hook into the the test runner's
-    // lifecyle. These are: `before`, `beforeEach`, `after`, `afterEach`.
-
-    // They're very useful to setup the environment for tests, and to clean it
-    // up after they run.
-
-    // A common pattern is to declare some variables, and assign them in the
-    // `before` and `beforeEach` callbacks.
     let Masquerade;
     let masqueradeContract;
     let owner;
@@ -26,14 +11,13 @@ describe("Masquerade contract", () => {
     let linkToken;
     let tokenOwner;
 
-    let tokenUri = {"name":"this is my new nft","description":"this is my nft description","image":"https://ipfs.io/ipfs/QmYxLg9aerxQjVUJi68BNhWNYBiQeJnEDsVJkrB33gGhnZ"};
-    
-    // `beforeEach` will run before each test, re-deploying the contract every
-    // time. It receives a callback, which can be async.
+    let tokenUri = JSON.stringify({ "name": "this is my new nft", "description": "this is my nft description", "image": "https://ipfs.io/ipfs/QmYxLg9aerxQjVUJi68BNhWNYBiQeJnEDsVJkrB33gGhnZ" });
+
     beforeEach(async () => {
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0xE84D601E5D945031129a83E5602be0CC7f182Cf3"]}
+            params: ["0xE84D601E5D945031129a83E5602be0CC7f182Cf3"]
+        }
         )
 
         // Get the ContractFactory and Signers here.
@@ -41,15 +25,12 @@ describe("Masquerade contract", () => {
         [owner, node, stranger] = await ethers.getSigners();
         tokenOwner = await ethers.getSigner("0xE84D601E5D945031129a83E5602be0CC7f182Cf3");
 
-        // To deploy our contract, we just have to call Token.deploy() and await
-        // for it to be deployed(), which happens onces its transaction has been
-        // mined.
         masqueradeContract = await Masquerade.deploy(node.address);
         linkToken = await ethers.getContractAt("LinkTokenInterface", "0x326C977E6efc84E512bB9C30f76E30c160eD06FB");
         linkToken.connect(tokenOwner).transfer(owner.address, `${1e18}`);
+        await masqueradeContract.deployed();
     });
 
-    // You can nest describe calls to create subsections.
     describe("Deployment", () => {
         it("Should set the right owner", async () => {
             expect(await masqueradeContract.owner()).to.equal(owner.address);
@@ -72,41 +53,80 @@ describe("Masquerade contract", () => {
         });
 
         it("Should have correct tokenId and tokenUri information", async () => {
-            // Check against ERC721 interface for new parameters
+            await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
+            const tokenData = await masqueradeContract.connect(owner).tokenURI(1);
+            expect(tokenUri).to.equal(tokenData);
         });
-/*         it("Should fail if sender doesn’t have enough tokens", async function () {
-            const initialOwnerBalance = await hardhatToken.balanceOf(owner.address);
+    });
 
-            // Try to send 1 token from addr1 (0 tokens) to owner (1000 tokens).
-            // `require` will evaluate false and revert the transaction.
+    describe("Transfer", () => {
+        it("Should allow tokens to be freely moved", async () => {
+            await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
+            await masqueradeContract.connect(owner).transferFrom(owner.address, stranger.address, 1);
+            await masqueradeContract.connect(stranger).transferFrom(stranger.address, node.address, 1);
+
+            const newTokenOwner = await (masqueradeContract.ownerOf(1));
+            expect(newTokenOwner).to.equal(node.address);
+        });
+
+        it("Should block old owner from accessing owner functions", async () => {
+            await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
+            await masqueradeContract.connect(owner).transferFrom(owner.address, stranger.address, 1);
+
             await expect(
-                hardhatToken.connect(addr1).transfer(owner.address, 1)
-            ).to.be.revertedWith("Not enough tokens");
-
-            // Owner balance shouldn't have changed.
-            expect(await hardhatToken.balanceOf(owner.address)).to.equal(
-                initialOwnerBalance
-            );
+                masqueradeContract.connect(owner).transferFrom(owner.address, node.address, 1)
+            ).to.be.revertedWith("transfer caller is not owner nor approved");
         });
 
-        it("Should update balances after transfers", async function () {
-            const initialOwnerBalance = await hardhatToken.balanceOf(owner.address);
+        it("Should block stranger from accessing owner functions", async () => {
+            await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
+            await expect(
+                masqueradeContract.connect(stranger).transferFrom(owner.address, stranger.address, 1)
+            ).to.be.revertedWith("transfer caller is not owner nor approved");
+        });
+    });
 
-            // Transfer 100 tokens from owner to addr1.
-            await hardhatToken.transfer(addr1.address, 100);
+    describe("Burning", () => {
+        it("Should block burning from unknown addresses", async () => {
+            const dummyb32 = '0xb3c15a6d94447b6045715e16a2e6dceb196d8ebf4d810acff9768115edb81354';
+            await expect(
+                masqueradeContract.connect(stranger).fulfillNFTDecode(dummyb32, 1)
+            ).to.be.revertedWith("Source must be the oracle of the request");
+        });
 
-            // Transfer another 50 tokens from owner to addr2.
-            await hardhatToken.transfer(addr2.address, 50);
+        it("Should allow burning from oracle address", async () => {
+            await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
+            await masqueradeContract.connect(owner).approve(masqueradeContract.address, 1);
 
-            // Check balances.
-            const finalOwnerBalance = await hardhatToken.balanceOf(owner.address);
-            expect(finalOwnerBalance).to.equal(initialOwnerBalance - 150);
+            let tx = await masqueradeContract.connect(owner).requestNFTDecode(node.address, "DUMMY_ID", 1);
+            let receipt = await tx.wait();
+            let requestId = receipt.events[0].args.id;
 
-            const addr1Balance = await hardhatToken.balanceOf(addr1.address);
-            expect(addr1Balance).to.equal(100);
+            await masqueradeContract.connect(node).fulfillNFTDecode(requestId, 1);
+        });
 
-            const addr2Balance = await hardhatToken.balanceOf(addr2.address);
-            expect(addr2Balance).to.equal(50);
-        }); */
+        it("Should burn the target token", async () => {
+            await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
+            await masqueradeContract.connect(owner).approve(masqueradeContract.address, 1);
+
+            let tx = await masqueradeContract.connect(owner).requestNFTDecode(node.address, "DUMMY_ID", 1);
+            let receipt = await tx.wait();
+            let requestId = receipt.events[0].args.id;
+
+            await masqueradeContract.connect(node).fulfillNFTDecode(requestId, 1);
+
+            await expect(
+                masqueradeContract.connect(owner).tokenURI(1)
+            ).to.be.revertedWith("URI query for nonexistent token");
+        });
+
+        it("Should only allow the owner to burn a token", async () => {
+            await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
+            await masqueradeContract.connect(owner).approve(masqueradeContract.address, 1);
+
+            await expect(
+                masqueradeContract.connect(stranger).requestNFTDecode(node.address, "DUMMY_ID", 1)
+            ).to.be.revertedWith("Sender is not owner of specified token");
+        });
     });
 });
