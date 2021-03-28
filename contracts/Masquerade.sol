@@ -50,8 +50,10 @@ contract Masquerade is ERC721, Ownable, ChainlinkClient {
     {
         require(msg.sender == ownerOf(_tokenId), "Sender is not owner of specified token");
         require(_isApprovedOrOwner(address(this), _tokenId), "Contract not approved to manage");
+        string memory tokenURI =  tokenURI(_tokenId);
         Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), address(this), this.fulfillNFTDecode.selector);
-        req.add("path", "test");
+        req.add("tokenURI", tokenURI);
+        req.addUint("tokenId", _tokenId);
         sendChainlinkRequestTo(_oracle, req, 0);
     }
 

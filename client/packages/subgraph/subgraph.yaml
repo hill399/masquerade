@@ -1,0 +1,26 @@
+specVersion: 0.0.2
+description: Subgraph that indexes the blockchain data
+repository: https://github.com/sablierhq/sablier-subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: masquerade
+    network: mumbai
+    source:
+      abi: masquerade
+      address: "0xfc3AdEecae0B362F6dBAb1C32230c77fcc8068F4"
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.3
+      abis:
+        - name: masquerade
+          file: ../contracts/src/abis/masquerade.json
+      entities:
+        - Token
+        - Transfer
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/mappings/transfers.ts
+      language: wasm/assemblyscript
