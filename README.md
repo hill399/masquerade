@@ -15,6 +15,8 @@ As an NFT, your token is able to be freely transferred and traded. When you want
 
 ### Technology Used
 - Chainlink Nodes, External Initiators, External Adapters.
+- Data encrpytion using Google KMS platform.
+- Image encoding using process of [steganography](https://en.wikipedia.org/wiki/Steganography).
 - create-eth-app for front-end.
 - NFT smart contracts (ERC721) from OZ.
 - Polygon (MATIC) L2.
