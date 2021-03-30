@@ -6,6 +6,10 @@ const sg = require('./steganography/steganography');
 const fs = require('fs');
 const ImageDataURI = require('image-data-uri');
 
+const Contract = require('web3-eth-contract');
+const masqueradeABI = require('./Masquerade.json');
+const web3 = require('web3');
+
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage({
     keyFilename: './serviceAccount.json'
@@ -30,25 +34,22 @@ const uriToIpfs = async (ipfs, uri) => {
     return {imageUrl, imageCid};
 }
 
-const buildAndDeployMetadata = async (ipfs, url, title, desc) => {
+const buildMetadata = (url, title, desc) => {
     const metadata = {
         'name': title,
         'description': desc,
         'image': url
     };
 
-    const result = await ipfs.add(JSON.stringify(metadata));
-    const metadataUrl = `https://ipfs.io/ipfs/${result.cid}`;
-
-    return metadataUrl;
+    return  JSON.stringify(metadata);
 }
-
 
 const encodeImage = async (jobRunID, args) => {
     const id = args[0];
     const message = args[1];
     const title = args[2];
     const desc = args[3];
+    const ownerAddress = args[4];
 
     const imageBuffer = await getBufferFromBucket(id);
     const cipher = await encrpytBuffer(message);
@@ -56,12 +57,14 @@ const encodeImage = async (jobRunID, args) => {
 
     const ipfs = await IPFS.create();
     const {imageUrl, imageCid} = await uriToIpfs(ipfs, dataUri);
-    const metadataUrl = await buildAndDeployMetadata(ipfs, imageUrl, title, desc);
+    const metadata = buildMetadata(imageUrl, title, desc);
+
+    const responseData = buildResponseABI(ownerAddress, metadata);
 
     return {
         jobRunID: jobRunID,
-        data: { "fileId": id, "url": metadataUrl, "cid": imageCid,  "result": metadataUrl },
-        result: metadataUrl,
+        data: { "fileId": id, "metadata": metadata, "cid": imageCid,  "result": responseData },
+        result: responseData,
         statusCode: 200
     }
 }
@@ -75,19 +78,15 @@ const getBufferFromBucket = async (id) => {
     } catch (err) {
         console.log(err.message);
     }
-
 };
 
+
+const buildResponseABI = (address, metadata) => {
+    const contract = new Contract(masqueradeABI, '0xfc3AdEecae0B362F6dBAb1C32230c77fcc8068F4');
+    const contractData = contract.methods.mintNFT(address, metadata).encodeABI();
+    return contractData;
+}
+
+
 module.exports.encodeImage = encodeImage;
-
-
-/*
-
---- TODO ---
-- Migrate to cloud function.
-- Implement HSM keyring.
-- Encode string buffer with HSM key.
-- Return CID.
-
-*/
 

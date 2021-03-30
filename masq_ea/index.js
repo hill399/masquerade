@@ -5,6 +5,7 @@ const decodeImage = require('./decode').decodeImage;
 
 const customParams = {
   func: ['func'],
+  owner: false,
   fileId: false,
   message: false,
   title: false,
@@ -22,7 +23,7 @@ const createRequest = async (input, callback) => {
   // The Validator helps you validate the Chainlink request xtata
   const validator = new Validator(inputFormat, customParams)
 
-  const encodeParams = [validator.validated.data.fileId, validator.validated.data.message, validator.validated.data.title, validator.validated.data.desc];
+  const encodeParams = [validator.validated.data.fileId, validator.validated.data.message, validator.validated.data.title, validator.validated.data.desc, validator.validated.data.owner];
   const decodeParams = [validator.validated.data.url];
 
   const jobRunId = validator.validated.id;
