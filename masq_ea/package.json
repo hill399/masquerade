@@ -17,7 +17,8 @@
         "fast-crc32c": "^2.0.0",
         "image-data-uri": "^2.0.1",
         "ipfs-core": "^0.5.4",
-        "jsdom": "^16.5.1"
+        "jsdom": "^16.5.1",
+        "web3": "1.3.0"
     },
     "devDependencies": {
         "body-parser": "^1.19.0",

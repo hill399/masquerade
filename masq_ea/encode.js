@@ -1,14 +1,11 @@
 const encrpytBuffer = require('./encrypt').encrpytBuffer;
+const sendTx = require('./sendTx').sendTx;
 
 const IPFS = require('ipfs-core');
 
 const sg = require('./steganography/steganography');
 const fs = require('fs');
 const ImageDataURI = require('image-data-uri');
-
-const Contract = require('web3-eth-contract');
-const masqueradeABI = require('./Masquerade.json');
-const web3 = require('web3');
 
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage({
@@ -59,12 +56,12 @@ const encodeImage = async (jobRunID, args) => {
     const {imageUrl, imageCid} = await uriToIpfs(ipfs, dataUri);
     const metadata = buildMetadata(imageUrl, title, desc);
 
-    const responseData = buildResponseABI(ownerAddress, metadata);
+    const txHash = await sendTx(ownerAddress, metadata);
 
     return {
         jobRunID: jobRunID,
-        data: { "fileId": id, "metadata": metadata, "cid": imageCid,  "result": responseData },
-        result: responseData,
+        data: { "fileId": id, "metadata": metadata, "cid": imageCid,  "txHash": txHash },
+        result: txHash,
         statusCode: 200
     }
 }
@@ -79,13 +76,6 @@ const getBufferFromBucket = async (id) => {
         console.log(err.message);
     }
 };
-
-
-const buildResponseABI = (address, metadata) => {
-    const contract = new Contract(masqueradeABI, '0xfc3AdEecae0B362F6dBAb1C32230c77fcc8068F4');
-    const contractData = contract.methods.mintNFT(address, metadata).encodeABI();
-    return contractData;
-}
 
 
 module.exports.encodeImage = encodeImage;

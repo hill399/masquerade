@@ -38,15 +38,17 @@ app.post('/submit', async (req, res) => {
                 message: 'No file uploaded'
             });
         } else {
+            
             const image = req.files.image;
             const message = req.body.message;
             const imageData = image.data;
             const title = req.body.title;
             const desc = req.body.desc;
+            const owner = req.body.owner;
 
             const imageId = await writeImageBufferToBucket(imageData);
 
-            const response = await callChainlinkNode(CHAINLINK_JOB_ID, imageId, message, title, desc);
+            const response = await callChainlinkNode(CHAINLINK_JOB_ID, imageId, message, title, desc, owner);
 
             // Get something from response?
 
@@ -72,7 +74,7 @@ app.post('/jobs', (req, res) => {
 
 
 /** Function to call the chainlink node and run a job */
-const callChainlinkNode = async (job_id, id, message, title, desc) => {
+const callChainlinkNode = async (job_id, id, message, title, desc, owner) => {
     const url_addon = '/v2/specs/' + job_id + '/runs'
     const response = await request.post({
         headers: {
@@ -86,7 +88,8 @@ const callChainlinkNode = async (job_id, id, message, title, desc) => {
             message: message,
             title: title,
             desc: desc,
-            func: 'encode'
+            func: 'encode',
+            owner: owner
         }
     });
 

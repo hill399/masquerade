@@ -17,7 +17,6 @@ const keyName = client.cryptoKeyPath(projectId, locationId, keyRingId, keyId);
 // Build the key name
 const encrpytBuffer = async (plaintext) => {
     const buffer = Buffer.from(plaintext);
-    // Optional, but recommended: compute plaintext's CRC32C.
     const bufferCrc32c = crc32c.calculate(buffer);
 
     const [encryptResponse] = await client.encrypt({
@@ -40,8 +39,6 @@ const encrpytBuffer = async (plaintext) => {
         throw new Error('Encrypt: response corrupted in-transit');
     }
 
-    console.log(`Ciphertext: ${ciphertext.toString('base64')}`);
-
     return ciphertext.toString('base64');
 }
 
@@ -57,9 +54,6 @@ const decrpytBuffer = async (cipher) => {
         },
       });
   
-      // Optional, but recommended: perform integrity verification on decryptResponse.
-      // For more details on ensuring E2E in-transit integrity to and from Cloud KMS visit:
-      // https://cloud.google.com/kms/docs/data-integrity-guidelines
       if (
         crc32c.calculate(decryptResponse.plaintext) !==
         Number(decryptResponse.plaintextCrc32c.value)
@@ -69,7 +63,6 @@ const decrpytBuffer = async (cipher) => {
   
       const plaintext = decryptResponse.plaintext.toString('utf8');
   
-      console.log(`Plaintext: ${plaintext}`);
       return plaintext;
 
 }

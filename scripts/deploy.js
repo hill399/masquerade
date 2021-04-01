@@ -11,7 +11,7 @@ const main = async () => {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   const Masquerade = await ethers.getContractFactory("Masquerade");
-  const masqueradeContract = await Masquerade.deploy("0xA09A06BA9b6973c3D81C470fC4B162De818Aa7eA");
+  const masqueradeContract = await Masquerade.deploy("0x38D0f0d939E24693454267D0C1fBCD0EE91fE96c");
 
   console.log("Masquerade address:", masqueradeContract.address);
 }
