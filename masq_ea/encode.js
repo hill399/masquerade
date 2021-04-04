@@ -1,8 +1,6 @@
 const encrpytBuffer = require('./encrypt').encrpytBuffer;
 const sendTx = require('./sendTx').sendTx;
 
-const IPFS = require('ipfs-core');
-
 const sg = require('./steganography/steganography');
 const fs = require('fs');
 const ImageDataURI = require('image-data-uri');
@@ -28,7 +26,7 @@ const uriToIpfs = async (ipfs, uri) => {
     const imageUrl = `https://ipfs.io/ipfs/${result.cid}`;
     const imageCid = `${result.cid}`;
 
-    return {imageUrl, imageCid};
+    return { imageUrl, imageCid };
 }
 
 const buildMetadata = (url, title, desc) => {
@@ -38,31 +36,46 @@ const buildMetadata = (url, title, desc) => {
         'image': url
     };
 
-    return  JSON.stringify(metadata);
+    return JSON.stringify(metadata);
 }
 
-const encodeImage = async (jobRunID, args) => {
+const encodeImage = async (jobRunID, ipfs, args) => {
     const id = args[0];
     const message = args[1];
     const title = args[2];
     const desc = args[3];
     const ownerAddress = args[4];
 
-    const imageBuffer = await getBufferFromBucket(id);
-    const cipher = await encrpytBuffer(message);
-    const dataUri = await sg.encode(cipher, imageBuffer);
+    try {
+        const imageBuffer = await getBufferFromBucket(id);
+        const cipher = await encrpytBuffer(message);
+        const dataUri = await sg.encode(cipher, imageBuffer);
 
-    const ipfs = await IPFS.create();
-    const {imageUrl, imageCid} = await uriToIpfs(ipfs, dataUri);
-    const metadata = buildMetadata(imageUrl, title, desc);
+        const { imageUrl, imageCid } = await uriToIpfs(ipfs, dataUri);
+        const metadata = buildMetadata(imageUrl, title, desc);
 
-    const txHash = await sendTx(ownerAddress, metadata);
+        const txHash = await sendTx(ownerAddress, metadata);
 
-    return {
-        jobRunID: jobRunID,
-        data: { "fileId": id, "metadata": metadata, "cid": imageCid,  "txHash": txHash },
-        result: txHash,
-        statusCode: 200
+        await ipfs.stop();
+
+        return {
+            jobRunID: jobRunID,
+            data: { "fileId": id, "metadata": metadata, "cid": imageCid, "txHash": txHash },
+            result: txHash,
+            statusCode: 200
+        }
+
+    } catch (e) {
+        console.log(e.message);
+
+        await ipfs.stop();
+
+        return {
+            jobRunID: jobRunID,
+            data: { "fileId": id, "metadata": {}, "cid": '', "txHash": '0x0' },
+            result: '0x0',
+            statusCode: 500
+        };
     }
 }
 

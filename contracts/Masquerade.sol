@@ -44,8 +44,16 @@ contract Masquerade is ERC721, Ownable, ChainlinkClient {
         return newItemId;
     }
 
+        function getLastTokenId()
+        public
+        view
+        returns (uint256)
+    {
+        return _tokenIds.current();
+    }
 
-    function requestNFTDecode(address _oracle, string memory _jobId, uint256 _tokenId)
+
+    function requestNFTDecode(address _oracle, string memory _jobId, string memory _chatId, uint256 _tokenId)
         public
     {
         require(msg.sender == ownerOf(_tokenId), "Sender is not owner of specified token");
@@ -53,7 +61,9 @@ contract Masquerade is ERC721, Ownable, ChainlinkClient {
         string memory tokenURI =  tokenURI(_tokenId);
         Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), address(this), this.fulfillNFTDecode.selector);
         req.add("tokenURI", tokenURI);
+        req.add("chatId", _chatId);
         req.addUint("tokenId", _tokenId);
+        req.add("func", "decode");
         sendChainlinkRequestTo(_oracle, req, 0);
     }
 
@@ -61,8 +71,10 @@ contract Masquerade is ERC721, Ownable, ChainlinkClient {
         public
         recordChainlinkFulfillment(_requestId)
     {
-        _burn(_tokenId);
-        emit DecodeNFTFulfilled(_requestId, _tokenId);
+        if ( _tokenId > 0) {
+            _burn(_tokenId);
+            emit DecodeNFTFulfilled(_requestId, _tokenId);
+        }
     }
 
     function getChainlinkToken() public view returns (address) {

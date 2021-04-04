@@ -15,7 +15,7 @@ module.exports = {
     },
     mumbai: {
         url: "https://rpc-mumbai.matic.today",
-        accounts: [`0x${MUMBAI_PK}`]
+        accounts: [`${MUMBAI_PK}`]
     },
   },
   solidity: "0.6.6",

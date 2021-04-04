@@ -3,7 +3,7 @@ import LandingButtons from "../components/LandingButtons/LandingButtons";
 
 export const Home = (props) => {
 
-    const { defaultProvider, masqueradeContract } = props;
+    const { provider, signer, masqueradeContract } = props;
 
     return (
         <Fragment>

@@ -109,3 +109,4 @@ masq_ea/task.json
 masq_ea/external-adapter.zip
 masq_ea/README.md
 node.txt
+add-env.sh

@@ -3,12 +3,12 @@ import { MintForm } from "../components/MintForm/MintForm";
 
 export const Mint = (props) => {
 
-    const { defaultProvider, masqueradeContract } = props;
+    const { signer } = props;
 
     return (
         <Fragment>
             <h1> Mint </h1>
-            <MintForm />
+            <MintForm signer={signer} />
         </Fragment>
     )
 }

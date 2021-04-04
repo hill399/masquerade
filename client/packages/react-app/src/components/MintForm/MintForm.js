@@ -2,7 +2,9 @@ import React, { useState } from "react";
 
 const axios = require('axios');
 
-export const MintForm = () => {
+export const MintForm = (props) => {
+
+    const { signer } = props;
 
     const [inputState, setInputState] = useState({
         title: '',
@@ -14,15 +16,19 @@ export const MintForm = () => {
     const handleMintFormSubmit = async (e) => {
         e.preventDefault();
 
+        // NEED TO CHECK FOR JPEG FORMAT
+
         const formData = new FormData();
+
+        const address = await signer.getAddress();
 
         formData.append("title", inputState.title);
         formData.append("desc", inputState.description);
         formData.append("image", inputState.image);
         formData.append("message", inputState.message);
+        formData.append("owner", address);
 
         const response = await axios.post('http://34.105.216.144:3002/submit', formData);
-
         console.log(response);
     }
 
