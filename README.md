@@ -21,6 +21,7 @@ As an NFT, your token is able to be freely transferred and traded. When you want
 - create-eth-app for front-end.
 - NFT smart contracts (ERC721) from OZ.
 - Polygon (MATIC) L2.
+- Message delivery via Telegram Bot.
 
  &nbsp; 
 
