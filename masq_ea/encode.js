@@ -60,8 +60,8 @@ const encodeImage = async (jobRunID, ipfs, args) => {
 
         return {
             jobRunID: jobRunID,
-            data: { "fileId": id, "metadata": metadata, "cid": imageCid, "txHash": txHash },
-            result: txHash,
+            data: { "fileId": id, "metadata": metadata, "cid": imageCid, "txHash": txHash, "result": metadata},
+            result: metadata,
             statusCode: 200
         }
 
@@ -72,7 +72,7 @@ const encodeImage = async (jobRunID, ipfs, args) => {
 
         return {
             jobRunID: jobRunID,
-            data: { "fileId": id, "metadata": {}, "cid": '', "txHash": '0x0' },
+            data: { "fileId": id, "metadata": {}, "cid": '', "txHash": '0x0', "result": '0x0'},
             result: '0x0',
             statusCode: 500
         };

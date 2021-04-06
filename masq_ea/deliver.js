@@ -36,19 +36,31 @@ const deliverMessage = async (jobRunID, tokenId, chatId, message) => {
     const res = await Requester.request(config, customError)
         .then(response => {
             if (response.data.ok) {
-                return {
+
+                const result = {
                     jobRunID: jobRunID,
-                    data: { "success": true, "chatId": chatId, "tokenId": tokenId },
+                    data: { "success": true, "chatId": chatId, "tokenId": tokenId, "result": tokenId },
                     result: tokenId,
                     statusCode: response.status
                 };
+
+                console.log('success: ', result);
+
+                return result;
+
             } else {
-                return {
+
+                const result = {
                     jobRunID: jobRunID,
-                    data: { "success": false, "chatId": chatId, "tokenId": tokenId },
+                    data: { "success": false, "chatId": chatId, "tokenId": tokenId, "result": 0 },
                     result: 0,
                     statusCode: 500
                 };
+
+                console.log('failure: ', result);
+
+
+                return result;
             }
         })
 

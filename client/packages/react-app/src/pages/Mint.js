@@ -7,8 +7,7 @@ export const Mint = (props) => {
 
     return (
         <Fragment>
-            <h1> Mint </h1>
-            <MintForm signer={signer} />
+            <MintForm signer={signer}/>
         </Fragment>
     )
 }
