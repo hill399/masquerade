@@ -3,11 +3,11 @@ import { MintForm } from "../components/MintForm/MintForm";
 
 export const Mint = (props) => {
 
-    const { signer } = props;
+    const { signer, setWaitingOnMint } = props;
 
     return (
         <Fragment>
-            <MintForm signer={signer}/>
+            <MintForm signer={signer} setWaitingOnMint={setWaitingOnMint} />
         </Fragment>
     )
 }

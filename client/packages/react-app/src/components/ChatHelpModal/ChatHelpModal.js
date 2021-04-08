@@ -31,9 +31,10 @@ export const ChatHelpModal = (props) => {
   
               <Box p={4} mb={3}>
                 <h3> Telegram Message Delivery </h3>
-                <p style={{fontFamily: 'Courier'}}> Masquerade uses the Telegram platform to safely deliver NFT contents to the user.</p> 
-                <p style={{fontFamily: 'Courier'}}> Start a chat with the Masquerade Bot to receive your unique chat ID. </p>
-                <img src={telegram} id="telegramIcon" alt="telegram" style={{ cursor: "pointer" }} onClick={() => window.open('http://t.me/MasqueradeDeliveryBot')} />
+                <p style={{fontFamily: 'Fjalla One'}}> Masquerade uses the Telegram platform to safely deliver secrets to you.</p> 
+                <p style={{fontFamily: 'Fjalla One'}}> Start a chat with the Masquerade Bot to receive your unique chat ID. </p>
+                <p style={{fontFamily: 'Courier New', paddingTop: '10px'}}> t.me/MasqueradeDeliveryBot </p>
+                <img src={telegram} id="telegramIcon" alt="telegram" style={{ cursor: "pointer"}} onClick={() => window.open('http://t.me/MasqueradeDeliveryBot')} />
               </Box>
   
               <Flex

@@ -3,6 +3,7 @@ import { Fragment } from "react";
 import { useHistory } from "react-router-dom";
 
 import { ChatHelpModal } from "../ChatHelpModal/ChatHelpModal";
+import { BurnModal } from "../BurnModal/BurnModal";
 
 import {
     Box,
@@ -17,30 +18,31 @@ import {
 
 export const RedeemForm = (props) => {
 
-    const ORACLE_ADDRESS = '0xAcC3247110cab6e2886e38a7167Cc36983b20233';
-    const JOB_ID = '27e9e6e5dfa94d6bb17b4a43ae890e2d';
+    const ORACLE_ADDRESS = process.env.REACT_APP_ORACLE_ADDRESS;
+    const JOB_ID = process.env.REACT_APP_JOB_ID;
 
-    const { masqueradeContract, signer, ownerTokenURIs } = props;
+    const { masqueradeContract, signer, ownerTokenURIs, setWaitingOnRedeem, setInvalidTx } = props;
 
     const history = useHistory();
 
     const [validated, setValidated] = useState(false);
     const [selectedToken, setSelectedToken] = useState({
-        id: 0,
+        id: "0",
         approved: false
     });
     const [userChatId, setUserChatId] = useState('');
     const [sendingTx, setSendingTx] = useState(false);
     const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+    const [isBurnModalOpen, setIsBurnModalOpen] = useState(false);
 
     const validateInput = e => {
         e.target.parentNode.classList.add("was-validated");
     };
 
     const validateForm = () => {
-        // Perform advanced validation here
         if (
-            selectedToken.id !== 0 &&
+            selectedToken.id !== "0" &&
+            parseInt(userChatId) &&
             userChatId.length > 0
         ) {
             setValidated(true);
@@ -54,7 +56,6 @@ export const RedeemForm = (props) => {
     });
 
     useEffect(() => {
-
         const getApprovedAddress = async () => {
             const approvedAddress = await masqueradeContract.getApproved(selectedToken.id);
 
@@ -90,33 +91,61 @@ export const RedeemForm = (props) => {
         history.push("/");
     }
 
+    const confirmTokenBurn = async () => {
+
+        setSendingTx(true);
+
+        const burnTx = await masqueradeContract.connect(signer).requestNFTDecode(ORACLE_ADDRESS, JOB_ID, userChatId, selectedToken.id);
+        const burnReceipt = await burnTx.wait();
+
+        if (burnReceipt.status === 1) {
+            setSelectedToken({
+                id: "0",
+                approved: false
+            });
+
+            window.scrollTo(0, 0);
+            setWaitingOnRedeem(true);
+            history.push("/");
+        } else {
+            setInvalidTx(true);
+        }
+
+        setSendingTx(false);
+    }
+
     const handleRedeemButton = async (e) => {
         e.preventDefault();
 
         setSendingTx(true);
 
-        try {
-            if (selectedToken.approved) {
-                await masqueradeContract.connect(signer).requestNFTDecode(ORACLE_ADDRESS, JOB_ID, userChatId, selectedToken.id);
+        if (selectedToken.approved) {
+            setIsBurnModalOpen(true);
+        } else {
+            const approveTx = await masqueradeContract.connect(signer).approve(masqueradeContract.address, selectedToken.id);
+            const approveReceipt = await approveTx.wait();
+
+            if (approveReceipt.status !== 1) {
+                setInvalidTx(true);
             } else {
-                await masqueradeContract.connect(signer).approve(masqueradeContract.address, selectedToken.id);
+                setSelectedToken({
+                    ...selectedToken,
+                    approved: true
+                });
             }
-
-        } catch {
-
         }
 
         setSendingTx(false);
     }
 
     const TokenDropDown = () => {
-        let items = [];
+        let items = [{ value: "0", label: 'Select Token...' }];
 
         for (let i in ownerTokenURIs) {
             items.push({ value: ownerTokenURIs[i].id, label: ownerTokenURIs[i].name });
         }
 
-        if (items.length === 0) {
+        if (items.length === 1) {
             items.push({ value: "0", label: "No Tokens Owned" });
         }
 
@@ -124,7 +153,7 @@ export const RedeemForm = (props) => {
             <Field label="Select Token" validated={validated} width={1}>
                 <Select
                     value={selectedToken.id}
-                    onClick={handleDropdownChange}
+                    onChange={handleDropdownChange}
                     required // set required attribute to use brower's HTML5 input validation
                     width={1}
                     options={items} />
@@ -138,11 +167,11 @@ export const RedeemForm = (props) => {
 
     const sendButtonText = () => {
         if (sendingTx) {
-            return <Loader color="white" />
+            return <Loader color="Black" size="30px" />
         }
 
         return (
-            <text style={{ fontFamily: 'Courier New', fontWeight: 500, fontSize: 24 }}> {selectedToken.approved ? "Redeem" : "Approve"} </text>
+            <text style={{ fontFamily: 'Fjalla One', fontWeight: 500, fontSize: 24 }}> {selectedToken.approved ? "Burn" : "Approve"} </text>
         )
     }
 
@@ -167,13 +196,13 @@ export const RedeemForm = (props) => {
 
                     <Flex flexWrap={"wrap"} style={{ paddingTop: '30px', textAlign: 'center' }}>
                         <Box width={[1, 1, 1 / 2]} px={3}>
-                            <Button mainColor="White" contrastColor="Black" onClick={handleRedeemButton} style={{ width: 150, marginLeft: '30px' }}>
+                            <Button mainColor="White" contrastColor="Black" onClick={handleRedeemButton} disabled={!validated} style={{ width: 150, marginLeft: '30px' }}>
                                 {sendButtonText()}
                             </Button>
                         </Box>
                         <Box width={[1, 1, 1 / 2]} px={3}>
                             <Button mainColor="White" contrastColor="Black" type="back" style={{ width: 150, marginRight: '30px' }} onClick={handleButtonBack}>
-                                <text style={{ fontFamily: 'Courier New', fontWeight: 500, fontSize: 24 }}> Back </text>
+                                <text style={{ fontFamily: 'Fjalla One', fontWeight: 500, fontSize: 24 }}> Back </text>
                             </Button>
                         </Box>
                     </Flex>
@@ -181,6 +210,7 @@ export const RedeemForm = (props) => {
             </Form>
 
             <ChatHelpModal isChatModalOpen={isChatModalOpen} setIsChatModalOpen={setIsChatModalOpen} />
+            <BurnModal isBurnModalOpen={isBurnModalOpen} setIsBurnModalOpen={setIsBurnModalOpen} confirmTokenBurn={confirmTokenBurn} />
 
         </Fragment>
     )

@@ -19,27 +19,35 @@ const { JSDOM } = jsdom;
 global.document = new JSDOM(`...`).window.document;
 global.Image = Canvas.Image;
 
-const uriToIpfs = async (ipfs, uri) => {
-    const resImage = ImageDataURI.decode(uri);
-    const result = await ipfs.add(resImage.dataBuffer);
+const pinataSDK = require('@pinata/sdk');
+const pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET_API);
 
-    const imageUrl = `https://ipfs.io/ipfs/${result.cid}`;
-    const imageCid = `${result.cid}`;
+const uriToIpfs = async (id, uri) => {
+    const tempFilePath = `/tmp/${id}.tmp`;
+
+    await ImageDataURI.outputFile(uri, tempFilePath);
+    const imageStream = fs.createReadStream(tempFilePath);
+
+    const result = await pinata.pinFileToIPFS(imageStream);
+
+    const imageUrl = `https://ipfs.io/ipfs/${result.IpfsHash}`;
+    const imageCid = `${result.IpfsHash}`;
 
     return { imageUrl, imageCid };
 }
 
-const buildMetadata = (url, title, desc) => {
+const buildAndUploadMetadata = async (url, title, desc) => {
     const metadata = {
         'name': title,
         'description': desc,
         'image': url
     };
 
-    return JSON.stringify(metadata);
+    const result = await pinata.pinJSONToIPFS(metadata, {});
+    return `ipfs://${result.IpfsHash}`;
 }
 
-const encodeImage = async (jobRunID, ipfs, args) => {
+const encodeImage = async (jobRunID, args) => {
     const id = args[0];
     const message = args[1];
     const title = args[2];
@@ -51,16 +59,14 @@ const encodeImage = async (jobRunID, ipfs, args) => {
         const cipher = await encrpytBuffer(message);
         const dataUri = await sg.encode(cipher, imageBuffer);
 
-        const { imageUrl, imageCid } = await uriToIpfs(ipfs, dataUri);
-        const metadata = buildMetadata(imageUrl, title, desc);
+        const { imageUrl, imageCid } = await uriToIpfs(id, dataUri);
+        const metadata = await buildAndUploadMetadata(imageUrl, title, desc);
 
         const txHash = await sendTx(ownerAddress, metadata);
 
-        await ipfs.stop();
-
         return {
             jobRunID: jobRunID,
-            data: { "fileId": id, "metadata": metadata, "cid": imageCid, "txHash": txHash, "result": metadata},
+            data: { "fileId": id, "metadata": metadata, "cid": imageCid, "txHash": txHash, "result": metadata },
             result: metadata,
             statusCode: 200
         }
@@ -68,11 +74,9 @@ const encodeImage = async (jobRunID, ipfs, args) => {
     } catch (e) {
         console.log(e.message);
 
-        await ipfs.stop();
-
         return {
             jobRunID: jobRunID,
-            data: { "fileId": id, "metadata": {}, "cid": '', "txHash": '0x0', "result": '0x0'},
+            data: { "fileId": id, "metadata": {}, "cid": '', "txHash": '0x0', "result": '0x0' },
             result: '0x0',
             statusCode: 500
         };

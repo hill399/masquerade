@@ -21,7 +21,7 @@ const LandingButtons = () => {
         history.push("/redeem");
     }
 
-    const setButtonHover = (e) => { 
+    const setButtonHover = (e) => {
         setTextValue(e.target.name);
     }
 
@@ -34,13 +34,13 @@ const LandingButtons = () => {
 
         switch (textValue) {
             case "mint":
-                landingText = "This is my dummy default text explaining the minting function"
+                landingText = "Mint a new NFT with a secret message inside"
                 break
             case "redeem":
-                landingText = "This is my dummy default text explaining the redeem function"
+                landingText = "Redeem an NFT and unlock its secret"
                 break
             default:
-                landingText = "This is my dummy default text explaining the masquerade platform"
+                landingText = "Create NFTs with secrets"
         }
 
         return (
@@ -54,18 +54,22 @@ const LandingButtons = () => {
                 <Flex mx={-3} flexWrap={"wrap"} style={{ paddingBottom: '70px' }}>
                     <Box width={[1, 1, 1 / 2]} px={3}>
                         <Button mainColor="White" contrastColor="Black" name="mint" style={{ width: 150 }} onClick={() => handleMintButton()} onMouseEnter={setButtonHover} onMouseLeave={clearButtonHover}>
-                            <text style={{fontFamily: 'Courier New', fontWeight: 500, fontSize: 24 }}> Mint </text>
-                    </Button>
+                            <text style={{ fontFamily: 'Fjalla One', fontWeight: 500, fontSize: 24 }}> Mint </text>
+                        </Button>
                     </Box>
                     <Box width={[1, 1, 1 / 2]} px={3}>
                         <Button mainColor="White" contrastColor="Black" name="redeem" style={{ width: 150 }} onClick={() => handleRedeemButton()} onMouseEnter={setButtonHover} onMouseLeave={clearButtonHover}>
-                        <text style={{fontFamily: 'Courier New', fontWeight: 500, fontSize: 24 }}> Redeem </text>
-                    </Button>
+                            <text style={{ fontFamily: 'Fjalla One', fontWeight: 500, fontSize: 24 }}> Redeem </text>
+                        </Button>
                     </Box>
                 </Flex>
             </Box>
 
-            <LandingText />
+            <Box width='800px' style={{ textAlign: 'center' }}>
+
+                <LandingText />
+
+            </Box>
 
         </Fragment>
 

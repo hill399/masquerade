@@ -15,13 +15,23 @@ import WalletButton from "./components/WalletButton/WalletButton";
 import { addresses, abis } from "@project/contracts";
 import { Fragment } from "react";
 
+import { Flash } from 'rimble-ui';
+
 import logoMain from "./icons/logo-main.jpg";
+import logoGithub from "./icons/github.png";
 
 const App = () => {
-  //const { loading, error, data } = useQuery(GET_TRANSFERS);
   const [provider, loadWeb3Modal, logoutOfWeb3Modal] = useWeb3Modal();
   const [signer, setSigner] = useState(null);
   const [masqueradeContract, setMasqueradeContract] = useState(null);
+  const [waitingOnMint, setWaitingOnMint] = useState(false);
+  const [waitingOnRedeem, setWaitingOnRedeem] = useState(false);
+  const [invalidTx, setInvalidTx] = useState(false);
+
+  const [flashState, setFlashState] = useState({
+    enabled: false,
+    text: ''
+  });
 
   const history = useHistory();
 
@@ -34,22 +44,62 @@ const App = () => {
 
   }, [provider]);
 
+
+  useEffect(() => {
+
+    if (waitingOnMint) {
+      setFlashState({
+        enabled: true,
+        text: "Token minting in progress..."
+      })
+      setWaitingOnMint(false);
+    }
+
+    if (waitingOnRedeem) {
+      setFlashState({
+        enabled: true,
+        text: "Token burn in progress..."
+      })
+      setWaitingOnRedeem(false);
+    }
+
+    if (invalidTx) {
+      setFlashState({
+        enabled: true,
+        text: "Bad TX, check parameters..."
+      })
+      setInvalidTx(false);
+    }
+
+    setTimeout(() => {
+      setFlashState({
+        enabled: false,
+        text: ""
+      })
+    }, 8000);
+
+  }, [waitingOnMint, waitingOnRedeem, invalidTx]);
+
   const handleLogoClick = () => {
     history.push('/');
   }
 
   return (
     <Fragment>
+      {flashState.enabled && <Flash>
+        {flashState.text}
+      </Flash>}
       <Header style={{ paddingRight: '10px' }}>
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Header>
-      <Body style={{ padding: '100px' }}>
-        <img src={logoMain} alt="Masquerade" style={{height: '200px', width: '200px', cursor: "pointer", paddingBottom: '10px'}} onClick={handleLogoClick}/>
+      <Body style={{ padding: '5px' }}>
+        <img src={logoMain} alt="Masquerade" style={{ height: '400px', width: '400px', cursor: "pointer", paddingBottom: '10px' }} onClick={handleLogoClick} />
         <Switch>
           <Route path='/' exact render={() => <Home provider={provider} signer={signer} masqueradeContract={masqueradeContract} />} />
-          <Route path='/mint' exact render={() => <Mint provider={provider} signer={signer} masqueradeContract={masqueradeContract} />} />
-          <Route path='/redeem' exact render={() => <Redeem provider={provider} signer={signer} masqueradeContract={masqueradeContract} />} />
+          <Route path='/mint' render={() => <Mint provider={provider} signer={signer} masqueradeContract={masqueradeContract} setWaitingOnMint={setWaitingOnMint} />} />
+          <Route path='/redeem' exact render={() => <Redeem provider={provider} signer={signer} masqueradeContract={masqueradeContract} setWaitingOnRedeem={setWaitingOnRedeem} setInvalidTx={setInvalidTx} />} />
         </Switch>
+        <img src={logoGithub} alt="visit-github" style={{ height: '50px', width: '50px', cursor: "pointer", paddingTop: '70px' }} onClick={() => window.open('http://github.com/hill399/Masquerade')} />
       </Body>
     </Fragment>
   );

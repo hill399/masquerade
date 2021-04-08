@@ -3,11 +3,19 @@ import { Fragment } from "react";
 
 import { RedeemForm } from "../components/RedeemForm/RedeemForm";
 
+import axios from "axios";
+
 export const Redeem = (props) => {
 
-    const { provider, signer, masqueradeContract } = props;
+    const { provider, signer, masqueradeContract, setWaitingOnRedeem, setInvalidTx } = props;
 
     const [ownerTokenURIs, setOwnerTokenURIs] = useState([]);
+
+    const getTokenMetadata = async (ipfsLink) => {
+        const ipfsHash = ipfsLink.substring(7);
+        const response = await axios.get(`https://ipfs.io/ipfs/${ipfsHash}`);
+        return response.data;
+    }
 
     useEffect(() => {
         const getOwnedTokens = async () => {
@@ -34,28 +42,30 @@ export const Redeem = (props) => {
         }
 
         const getOwnerTokenURIs = async (tokenIds) => {
-        const ownerTokenURIs = {};
+            const ownerTokenURIs = {};
 
-        for (let id of tokenIds) {
-            const tokenURI = await masqueradeContract.tokenURI(id);
-            ownerTokenURIs[id] = {
-                ...JSON.parse(tokenURI),
-                id
+            for (let id of tokenIds) {
+                const tokenURI = await masqueradeContract.tokenURI(id);
+                const tokenMetadata = await getTokenMetadata(tokenURI);
+
+                ownerTokenURIs[id] = {
+                    ...tokenMetadata,
+                    id
+                }
             }
+
+            setOwnerTokenURIs(ownerTokenURIs);
         }
 
-        setOwnerTokenURIs(ownerTokenURIs);
-    }
+        if (provider && signer) {
+            getOwnedTokens()
+        }
 
-    if (provider && signer) {
-        getOwnedTokens()
-    }
+    }, [provider, signer, masqueradeContract]);
 
-}, [provider, signer, masqueradeContract]);
-
-return (
-    <Fragment>
-        <RedeemForm signer={signer} masqueradeContract={masqueradeContract} ownerTokenURIs={ownerTokenURIs} />
-    </Fragment>
-)
+    return (
+        <Fragment>
+            <RedeemForm signer={signer} masqueradeContract={masqueradeContract} ownerTokenURIs={ownerTokenURIs} setWaitingOnRedeem={setWaitingOnRedeem} setInvalidTx={setInvalidTx} />
+        </Fragment>
+    )
 }

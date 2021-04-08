@@ -1,5 +1,4 @@
 const { Validator } = require('@chainlink/external-adapter')
-const IPFS = require('ipfs-core');
 
 const encodeImage = require('./encode').encodeImage;
 const decodeImage = require('./decode').decodeImage;
@@ -31,16 +30,14 @@ const createRequest = async (input, callback) => {
 
   const jobRunId = validator.validated.id;
 
-  const ipfs = await IPFS.create();
-
   switch (validator.validated.data.func) {
     case 'encode':
-      return encodeImage(jobRunId, ipfs, encodeParams).then((result) => {
+      return encodeImage(jobRunId, encodeParams).then((result) => {
         callback(200, result);
       })
 
     case 'decode':
-      return decodeImage(jobRunId, ipfs, decodeParams).then((result) => {
+      return decodeImage(jobRunId, decodeParams).then((result) => {
         callback(200, result);
       })
 
