@@ -60,10 +60,9 @@ const App = () => {
 
     if (waitingOnMint) {
       const openSeaLink = `https://testnets.opensea.io/assets/mumbai/${addresses.masquerade}`;
-      const linkedText = 'Opensea.io';
       setFlashState({
         enabled: true,
-        text: `Token minting in progress, view it on ` + linkedText.link(openSeaLink)
+        text: <text>Token minting in progress, view it on <a href={openSeaLink}>Opensea.io</a></text>
       })
       setWaitingOnMint(false);
     }
