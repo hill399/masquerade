@@ -8,6 +8,7 @@ export const Header = styled.header`
   align-items: center;
   justify-content: flex-end;
   color: white;
+  min-width: 900px;
 `;
 
 export const Input = styled.input`
@@ -28,6 +29,8 @@ export const Body = styled.body`
   flex-direction: column;
   font-size: calc(10px + 2vmin);
   min-height: calc(100vh - 70px);
+  min-width: 900px;
+  height: 100%
 `;
 
 export const Image = styled.img`
@@ -55,6 +58,8 @@ export const Button = styled.button`
   text-decoration: none;
   margin: 0px 20px;
   padding: 12px 24px;
+  display: inline-block;
+  position: absolute;
 
   ${props => props.hidden && "hidden"} :focus {
     border: none;

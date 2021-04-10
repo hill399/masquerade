@@ -194,7 +194,7 @@ export const RedeemForm = (props) => {
                         <text onClick={handleChatTooltip} style={{ fontSize: 12, padding: '8px', cursor: 'pointer' }}>Why do I need this?</text>
                     </Field>
 
-                    <Flex flexWrap={"wrap"} style={{ paddingTop: '30px', textAlign: 'center' }}>
+                    <Flex style={{ paddingTop: '30px', textAlign: 'center' }}>
                         <Box width={[1, 1, 1 / 2]} px={3}>
                             <Button mainColor="White" contrastColor="Black" onClick={handleRedeemButton} disabled={!validated} style={{ width: 150, marginLeft: '30px' }}>
                                 {sendButtonText()}

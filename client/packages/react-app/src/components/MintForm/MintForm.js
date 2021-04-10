@@ -155,7 +155,7 @@ export const MintForm = (props) => {
                 </Field>
 
 
-                <Flex flexWrap={"wrap"} style={{ paddingTop: '30px', textAlign: 'center' }}>
+                <Flex style={{ paddingTop: '30px', textAlign: 'center' }}>
                     <Box width={[1, 1, 1 / 2]} px={3}>
                         <Button mainColor="White" contrastColor="Black" type="submit" disabled={!validated} style={{ width: 150, marginLeft: '30px' }}>
                             <text style={{ fontFamily: 'Fjalla One', fontWeight: 500, fontSize: 24 }}> Mint </text>

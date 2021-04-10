@@ -27,6 +27,7 @@ const App = () => {
   const [waitingOnMint, setWaitingOnMint] = useState(false);
   const [waitingOnRedeem, setWaitingOnRedeem] = useState(false);
   const [invalidTx, setInvalidTx] = useState(false);
+  const [correctNetwork, setCorrectNetwork] = useState(false);
 
   const [flashState, setFlashState] = useState({
     enabled: false,
@@ -37,20 +38,32 @@ const App = () => {
 
   useEffect(() => {
     if (provider) {
-      const masqueradeContract = new Contract(addresses.masquerade, abis.masquerade, provider);
-      setMasqueradeContract(masqueradeContract);
-      setSigner(provider.getSigner());
+        const checkConnectedNetwork = async () => {
+        const networkInfo = await  provider.getNetwork();
+        const correctNetworkId = (80001 === networkInfo.chainId);
+        setCorrectNetwork(correctNetworkId);
+      }
+
+      checkConnectedNetwork();
+
+      if (correctNetwork) {
+        const masqueradeContract = new Contract(addresses.masquerade, abis.masquerade, provider);
+        setMasqueradeContract(masqueradeContract);
+        setSigner(provider.getSigner());
+      }
     }
 
-  }, [provider]);
+  }, [provider, correctNetwork]);
 
 
   useEffect(() => {
 
     if (waitingOnMint) {
+      const openSeaLink = `https://testnets.opensea.io/assets/mumbai/${addresses.masquerade}`;
+      const linkedText = 'Opensea.io';
       setFlashState({
         enabled: true,
-        text: "Token minting in progress..."
+        text: `Token minting in progress, view it on ` + linkedText.link(openSeaLink)
       })
       setWaitingOnMint(false);
     }
@@ -71,14 +84,24 @@ const App = () => {
       setInvalidTx(false);
     }
 
-    setTimeout(() => {
+    if (!correctNetwork) {
       setFlashState({
-        enabled: false,
-        text: ""
+        enabled: true,
+        text: "Wrong network, connect to Mumbai testnet..."
       })
-    }, 8000);
+    }
 
-  }, [waitingOnMint, waitingOnRedeem, invalidTx]);
+    if (correctNetwork) {
+      setTimeout(() => {
+        setFlashState({
+          enabled: false,
+          text: ""
+        })
+      }, 8000);
+    }
+
+
+  }, [waitingOnMint, waitingOnRedeem, invalidTx, correctNetwork]);
 
   const handleLogoClick = () => {
     history.push('/');
@@ -86,7 +109,7 @@ const App = () => {
 
   return (
     <Fragment>
-      {flashState.enabled && <Flash>
+      {flashState.enabled && <Flash style={{minWidth: '900px'}} >
         {flashState.text}
       </Flash>}
       <Header style={{ paddingRight: '10px' }}>
@@ -95,9 +118,9 @@ const App = () => {
       <Body style={{ padding: '5px' }}>
         <img src={logoMain} alt="Masquerade" style={{ height: '400px', width: '400px', cursor: "pointer", paddingBottom: '10px' }} onClick={handleLogoClick} />
         <Switch>
-          <Route path='/' exact render={() => <Home provider={provider} signer={signer} masqueradeContract={masqueradeContract} />} />
-          <Route path='/mint' render={() => <Mint provider={provider} signer={signer} masqueradeContract={masqueradeContract} setWaitingOnMint={setWaitingOnMint} />} />
-          <Route path='/redeem' exact render={() => <Redeem provider={provider} signer={signer} masqueradeContract={masqueradeContract} setWaitingOnRedeem={setWaitingOnRedeem} setInvalidTx={setInvalidTx} />} />
+          <Route path='/' exact render={() => <Home provider={provider} signer={signer} masqueradeContract={masqueradeContract} correctNetwork={correctNetwork} />} />
+          {correctNetwork && <Route path='/mint' render={() => <Mint provider={provider} signer={signer} masqueradeContract={masqueradeContract} setWaitingOnMint={setWaitingOnMint} />} />}
+          {correctNetwork && <Route path='/redeem' exact render={() => <Redeem provider={provider} signer={signer} masqueradeContract={masqueradeContract} setWaitingOnRedeem={setWaitingOnRedeem} setInvalidTx={setInvalidTx} />} />}
         </Switch>
         <img src={logoGithub} alt="visit-github" style={{ height: '50px', width: '50px', cursor: "pointer", paddingTop: '70px' }} onClick={() => window.open('http://github.com/hill399/Masquerade')} />
       </Body>
