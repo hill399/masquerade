@@ -11,7 +11,7 @@ describe("Masquerade contract", () => {
     let linkToken;
     let tokenOwner;
 
-    let tokenUri = JSON.stringify({ "name": "this is my new nft", "description": "this is my nft description", "image": "https://ipfs.io/ipfs/QmYxLg9aerxQjVUJi68BNhWNYBiQeJnEDsVJkrB33gGhnZ" });
+    let tokenUri = "ipfs://QmYxLg9aerxQjVUJi68BNhWNYBiQeJnEDsVJkrB33gGhnZ";
 
     beforeEach(async () => {
         await hre.network.provider.request({
@@ -98,7 +98,7 @@ describe("Masquerade contract", () => {
             await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
             await masqueradeContract.connect(owner).approve(masqueradeContract.address, 1);
 
-            let tx = await masqueradeContract.connect(owner).requestNFTDecode(node.address, "DUMMY_ID", 1);
+            let tx = await masqueradeContract.connect(owner).requestNFTDecode(node.address, "DUMMY_ID", "123456789", 1);
             let receipt = await tx.wait();
             let requestId = receipt.events[0].args.id;
 
@@ -109,7 +109,7 @@ describe("Masquerade contract", () => {
             await masqueradeContract.connect(node).mintNFT(owner.address, tokenUri);
             await masqueradeContract.connect(owner).approve(masqueradeContract.address, 1);
 
-            let tx = await masqueradeContract.connect(owner).requestNFTDecode(node.address, "DUMMY_ID", 1);
+            let tx = await masqueradeContract.connect(owner).requestNFTDecode(node.address, "DUMMY_ID", "123456789", 1);
             let receipt = await tx.wait();
             let requestId = receipt.events[0].args.id;
 
@@ -125,7 +125,7 @@ describe("Masquerade contract", () => {
             await masqueradeContract.connect(owner).approve(masqueradeContract.address, 1);
 
             await expect(
-                masqueradeContract.connect(stranger).requestNFTDecode(node.address, "DUMMY_ID", 1)
+                masqueradeContract.connect(stranger).requestNFTDecode(node.address, "DUMMY_ID", "123456789", 1)
             ).to.be.revertedWith("Sender is not owner of specified token");
         });
     });
