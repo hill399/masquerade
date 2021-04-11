@@ -1,5 +1,8 @@
-# Masquerade
+<p align="center">
+ <img src="https://user-images.githubusercontent.com/47973148/114313103-124e9a80-9aed-11eb-8b0b-94ff653da292.jpg">
+</p>
 
+# Masquerade
 
 ## Create NFTs with secrets
 
