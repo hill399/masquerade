@@ -19,10 +19,7 @@ const { JSDOM } = jsdom;
 global.document = new JSDOM(`...`).window.document;
 global.Image = Canvas.Image;
 
-const pinataSDK = require('@pinata/sdk');
-const pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET_API);
-
-const uriToIpfs = async (id, uri) => {
+const uriToIpfs = async (pinata, id, uri) => {
     const tempFilePath = `/tmp/${id}.tmp`;
 
     await ImageDataURI.outputFile(uri, tempFilePath);
@@ -36,7 +33,7 @@ const uriToIpfs = async (id, uri) => {
     return { imageUrl, imageCid };
 }
 
-const buildAndUploadMetadata = async (url, title, desc) => {
+const buildAndUploadMetadata = async (pinata, url, title, desc) => {
     const metadata = {
         'name': title,
         'description': desc,
@@ -47,7 +44,7 @@ const buildAndUploadMetadata = async (url, title, desc) => {
     return `ipfs://${result.IpfsHash}`;
 }
 
-const encodeImage = async (jobRunID, args) => {
+const encodeImage = async (jobRunID, pinata, args) => {
     const id = args[0];
     const message = args[1];
     const title = args[2];
@@ -59,8 +56,8 @@ const encodeImage = async (jobRunID, args) => {
         const cipher = await encrpytBuffer(message);
         const dataUri = await sg.encode(cipher, imageBuffer);
 
-        const { imageUrl, imageCid } = await uriToIpfs(id, dataUri);
-        const metadata = await buildAndUploadMetadata(imageUrl, title, desc);
+        const { imageUrl, imageCid } = await uriToIpfs(pinata, id, dataUri);
+        const metadata = await buildAndUploadMetadata(pinata, imageUrl, title, desc);
 
         const txHash = await sendTx(ownerAddress, metadata);
 

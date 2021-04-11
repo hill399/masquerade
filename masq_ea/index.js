@@ -3,6 +3,9 @@ const { Validator } = require('@chainlink/external-adapter')
 const encodeImage = require('./encode').encodeImage;
 const decodeImage = require('./decode').decodeImage;
 
+const pinataSDK = require('@pinata/sdk');
+const pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET_API);
+
 const customParams = {
   func: ['func'],
   owner: false,
@@ -32,12 +35,12 @@ const createRequest = async (input, callback) => {
 
   switch (validator.validated.data.func) {
     case 'encode':
-      return encodeImage(jobRunId, encodeParams).then((result) => {
+      return encodeImage(jobRunId, pinata, encodeParams).then((result) => {
         callback(200, result);
       })
 
     case 'decode':
-      return decodeImage(jobRunId, decodeParams).then((result) => {
+      return decodeImage(jobRunId, pinata, decodeParams).then((result) => {
         callback(200, result);
       })
 

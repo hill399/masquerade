@@ -21,7 +21,7 @@ const parseTokenURI = async (tokenHash) => {
 }
 
 
-const unpinIpfsData = async (tokenHash) => {
+const unpinIpfsData = async (pinata, tokenHash) => {
     const metadataHash = tokenHash.substring(7);
     const response = await axios.get(`https://ipfs.io/ipfs/${metadataHash}`, {
         responseType: 'application/json'
@@ -38,7 +38,7 @@ const unpinIpfsData = async (tokenHash) => {
 
 
 
-const decodeImage = async (jobRunID, args) => {
+const decodeImage = async (jobRunID, pinata, args) => {
     const tokenHash = args[0];
     const tokenId = args[1];
     const chatId = args[2];
@@ -58,7 +58,7 @@ const decodeImage = async (jobRunID, args) => {
 
         const response = await deliverMessage(jobRunID, tokenId, chatId, message);
 
-        await unpinIpfsData(tokenHash);
+        await unpinIpfsData(pinata, tokenHash);
 
         return response;
 

@@ -142,7 +142,8 @@ export const RedeemForm = (props) => {
         let items = [{ value: "0", label: 'Select Token...' }];
 
         for (let i in ownerTokenURIs) {
-            items.push({ value: ownerTokenURIs[i].id, label: ownerTokenURIs[i].name });
+            const itemLabel = `MASQ ${ownerTokenURIs[i].id} - ${ownerTokenURIs[i].name}`
+            items.push({ value: ownerTokenURIs[i].id, label: itemLabel });
         }
 
         if (items.length === 1) {

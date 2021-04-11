@@ -58,7 +58,7 @@ function useWeb3Modal(config = {}) {
           setProvider(new Web3Provider(newProvider));
         });
   
-        window.ethereum.on("networkChanged", async () => {
+        window.ethereum.on("chainChanged", async () => {
           const newProvider = await web3Modal.connect();
           setProvider(new Web3Provider(newProvider));
         });

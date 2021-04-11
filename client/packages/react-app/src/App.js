@@ -59,52 +59,60 @@ const App = () => {
 
 
   useEffect(() => {
-
-    const timedWarning = () => {
-      setFlashState({
-        enabled: false,
-        text: ""
-      })
-    }
-
-    if (waitingOnMint) {
-      const openSeaLink = `https://testnets.opensea.io/assets/masquerade-v4`;
-      setFlashState({
-        enabled: true,
-        text: <text>Token minting in progress, view it on <a href={openSeaLink}>Opensea.io</a></text>
-      })
-      setWaitingOnMint(false);
-    }
-
-    if (waitingOnRedeem) {
-      setFlashState({
-        enabled: true,
-        text: "Token burn in progress..."
-      })
-      setWaitingOnRedeem(false);
-    }
-
-    if (invalidTx) {
-      setFlashState({
-        enabled: true,
-        text: "Bad TX, check parameters..."
-      })
-      setInvalidTx(false);
-    }
-
-    if (correctNetwork) {
-      flashTimeouts.push(setTimeout(timedWarning, 8000));
-    } else {
+    if (!correctNetwork) {
       for (let timeout of flashTimeouts) {
         clearTimeout(timeout);
       }
+
       setFlashState({
         enabled: true,
         text: "Wrong network, connect to Mumbai testnet..."
       })
     }
+  }, [correctNetwork]);
 
-  }, [waitingOnMint, waitingOnRedeem, invalidTx, correctNetwork, flashTimeouts]);
+
+  useEffect(() => {
+    if (correctNetwork) {
+      for (let timeout of flashTimeouts) {
+        clearTimeout(timeout);
+      }
+
+      const timedWarning = () => {
+        setFlashState({
+          enabled: false,
+          text: ""
+        })
+      }
+
+      if (waitingOnMint) {
+        const openSeaLink = `https://testnets.opensea.io/assets/masquerade-v4`;
+        setFlashState({
+          enabled: true,
+          text: <text>Token minting in progress, view it on <a href={openSeaLink}>Opensea.io</a></text>
+        })
+        setWaitingOnMint(false);
+      }
+
+      if (waitingOnRedeem) {
+        setFlashState({
+          enabled: true,
+          text: "Token burn in progress..."
+        })
+        setWaitingOnRedeem(false);
+      }
+
+      if (invalidTx) {
+        setFlashState({
+          enabled: true,
+          text: "Bad TX, check parameters..."
+        })
+        setInvalidTx(false);
+      }
+
+      flashTimeouts.push(setTimeout(timedWarning, 8000));
+    }
+  }, [waitingOnMint, waitingOnRedeem, invalidTx, flashTimeouts, correctNetwork]);
 
   const handleLogoClick = () => {
     history.push('/');
