@@ -7,6 +7,13 @@
 ## Create NFTs with secrets
 
 ### Built for the Chainlink Spring 2021 Hackathon
+
+ &nbsp;  
+ 
+ 
+## [Video Demo](https://www.youtube.com/watch?v=WGLRcHtwYYE)
+Quick demo video available to show basic operation of minting & burning.
+
  &nbsp;  
 
  ## What is it?
