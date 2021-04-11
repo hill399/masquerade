@@ -7,7 +7,8 @@
 ## Create NFTs with secrets
 
 ### Built for the Chainlink Spring 2021 Hackathon
- &nbsp;     
+ &nbsp;  
+
  ## What is it?
 Masquerade is a platform which leverages Chainlink to build NFTs which hide a secret - encrypted information encoded directly into the image. Simply provide an image and your plaintext data and Masquerade will handle the rest, minting you a shiny new NFT with your information safely stored within!
 
@@ -65,3 +66,11 @@ When the owner of a token wants to unlock the secrets of their newly gifted/purc
 - Masquerade External Adapter (`masq_ea`)
 - Masquerade External Initiator (`masq_ei`)
 - Masquerade Delivery Bot (`masq_tg`)
+
+ &nbsp;
+
+## Next Steps
+- Ran into issues when constructing Chainlink ethTx transactions to mint NFTs. Believe it has to do with the bytes32 response having a maximum length. As a temporary measure, implemented ethers.js in the external adapter to provide this functionality.
+- Find an alternative message encryption scheme to Google KMS - ideally something which could be shared amongst multiple nodes.
+- Redesign architecture to allow for a greater number of nodes to be safely used, currently restricted to a single node.
+- More elaborate front-end which could allow users to better manage and graphically customise their NFTs.
