@@ -27,7 +27,7 @@ const App = () => {
   const [waitingOnMint, setWaitingOnMint] = useState(false);
   const [waitingOnRedeem, setWaitingOnRedeem] = useState(false);
   const [invalidTx, setInvalidTx] = useState(false);
-  const [correctNetwork, setCorrectNetwork] = useState(false);
+  const [correctNetwork, setCorrectNetwork] = useState(null);
 
   const [flashState, setFlashState] = useState({
     enabled: false,
@@ -36,30 +36,39 @@ const App = () => {
 
   const history = useHistory();
 
+  const flashTimeouts = [];
+
   useEffect(() => {
     if (provider) {
-        const checkConnectedNetwork = async () => {
-        const networkInfo = await  provider.getNetwork();
+      const checkConnectedNetwork = async () => {
+        const networkInfo = await provider.getNetwork();
         const correctNetworkId = (80001 === networkInfo.chainId);
         setCorrectNetwork(correctNetworkId);
+
+        if (correctNetworkId) {
+          const masqueradeContract = new Contract(addresses.masquerade, abis.masquerade, provider);
+          setMasqueradeContract(masqueradeContract);
+          setSigner(provider.getSigner());
+        }
       }
 
       checkConnectedNetwork();
-
-      if (correctNetwork) {
-        const masqueradeContract = new Contract(addresses.masquerade, abis.masquerade, provider);
-        setMasqueradeContract(masqueradeContract);
-        setSigner(provider.getSigner());
-      }
     }
 
-  }, [provider, correctNetwork]);
+  }, [provider]);
 
 
   useEffect(() => {
 
+    const timedWarning = () => {
+      setFlashState({
+        enabled: false,
+        text: ""
+      })
+    }
+
     if (waitingOnMint) {
-      const openSeaLink = `https://testnets.opensea.io/assets/mumbai/${addresses.masquerade}`;
+      const openSeaLink = `https://testnets.opensea.io/assets/masquerade-v4`;
       setFlashState({
         enabled: true,
         text: <text>Token minting in progress, view it on <a href={openSeaLink}>Opensea.io</a></text>
@@ -83,22 +92,17 @@ const App = () => {
       setInvalidTx(false);
     }
 
-    if (!correctNetwork) {
+    if (correctNetwork) {
+      flashTimeouts.push(setTimeout(timedWarning, 8000));
+    } else {
+      for (let timeout of flashTimeouts) {
+        clearTimeout(timeout);
+      }
       setFlashState({
         enabled: true,
         text: "Wrong network, connect to Mumbai testnet..."
       })
     }
-
-    if (correctNetwork) {
-      setTimeout(() => {
-        setFlashState({
-          enabled: false,
-          text: ""
-        })
-      }, 8000);
-    }
-
 
   }, [waitingOnMint, waitingOnRedeem, invalidTx, correctNetwork]);
 
@@ -108,7 +112,7 @@ const App = () => {
 
   return (
     <Fragment>
-      {flashState.enabled && <Flash style={{minWidth: '900px'}} >
+      {flashState.enabled && <Flash style={{ minWidth: '900px' }} >
         {flashState.text}
       </Flash>}
       <Header style={{ paddingRight: '10px' }}>

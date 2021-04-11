@@ -49,6 +49,25 @@ function useWeb3Modal(config = {}) {
     }
   }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
 
+
+  useEffect(() => {
+    async function listenMMAccount() {
+      window.ethereum.on("accountsChanged", async function() {
+        const newProvider = await web3Modal.connect();
+        setProvider(new Web3Provider(newProvider));
+      });
+
+      window.ethereum.on("networkChanged", async function() {
+        const newProvider = await web3Modal.connect();
+        setProvider(new Web3Provider(newProvider));
+      });
+
+    }
+
+    listenMMAccount();
+
+  }, [web3Modal]);
+
   return [provider, loadWeb3Modal, logoutOfWeb3Modal];
 }
 
