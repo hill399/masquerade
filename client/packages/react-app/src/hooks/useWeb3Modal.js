@@ -51,17 +51,18 @@ function useWeb3Modal(config = {}) {
 
 
   useEffect(() => {
-    async function listenMMAccount() {
-      window.ethereum.on("accountsChanged", async function() {
-        const newProvider = await web3Modal.connect();
-        setProvider(new Web3Provider(newProvider));
-      });
-
-      window.ethereum.on("networkChanged", async function() {
-        const newProvider = await web3Modal.connect();
-        setProvider(new Web3Provider(newProvider));
-      });
-
+    const listenMMAccount = async () => {
+      if (window.ethereum) {
+        window.ethereum.on("accountsChanged", async () => {
+          const newProvider = await web3Modal.connect();
+          setProvider(new Web3Provider(newProvider));
+        });
+  
+        window.ethereum.on("networkChanged", async () => {
+          const newProvider = await web3Modal.connect();
+          setProvider(new Web3Provider(newProvider));
+        });
+      }
     }
 
     listenMMAccount();

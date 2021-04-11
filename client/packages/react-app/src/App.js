@@ -104,7 +104,7 @@ const App = () => {
       })
     }
 
-  }, [waitingOnMint, waitingOnRedeem, invalidTx, correctNetwork]);
+  }, [waitingOnMint, waitingOnRedeem, invalidTx, correctNetwork, flashTimeouts]);
 
   const handleLogoClick = () => {
     history.push('/');
